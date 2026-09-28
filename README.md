@@ -1,25 +1,27 @@
 # Apple Music Now Playing
 
-Spicetify 扩展：在 Spotify 里用接近 Apple Music 全屏的方式显示封面、歌词和控制条。
+**English** | [中文](README.zh-CN.md)
 
-当前版本：**1.0.0**
+A [Spicetify](https://spicetify.app) extension that brings an Apple Music-style fullscreen now playing view to Spotify: artwork, lyrics, and playback controls.
 
-## 功能
+Current version: **1.0.0**
 
-- 左侧封面、歌名、艺人 / 专辑、进度条和控制按钮
-- 右侧同步歌词：当前行居中，上下行淡出并带跟随滚动
-- 封面模糊流体背景
-- 歌词优先用 Spotify 官方同步歌词，没有时回退到 [LRCLIB](https://lrclib.net)
-- 顶栏按钮或 `F11` 进入 / 退出全屏，`Esc` 或双击画面退出
+## Features
 
-## 要求
+- Album art, title, artist / album, progress bar, and controls on the left
+- Synced lyrics on the right: the current line stays centered, nearby lines fade, and the list follows with a staggered scroll
+- Fluid blurred artwork background
+- Lyrics prefer Spotify’s official synced lyrics, then fall back to [LRCLIB](https://lrclib.net)
+- Open or close fullscreen from the top-bar button or `F11`; exit with `Esc` or a double-click
+
+## Requirements
 
 - [Spicetify](https://spicetify.app) **v2.45+**
-- 已用 Spicetify 打过补丁的 Spotify 桌面版（macOS / Windows / Linux）
+- A Spotify desktop client already patched with Spicetify (macOS / Windows / Linux)
 
-## 安装
+## Install
 
-1. 把 `appleMusicNowPlaying.js` 复制到 Spicetify 扩展目录：
+1. Copy `appleMusicNowPlaying.js` into your Spicetify Extensions folder:
 
    ```bash
    # macOS / Linux
@@ -29,58 +31,58 @@ Spicetify 扩展：在 Spotify 里用接近 Apple Music 全屏的方式显示封
    copy appleMusicNowPlaying.js %userprofile%\.config\spicetify\Extensions\
    ```
 
-2. 启用扩展并应用：
+2. Enable the extension and apply:
 
    ```bash
    spicetify config extensions appleMusicNowPlaying.js
    spicetify apply
    ```
 
-   如果之前开过官方 `fullAppDisplay.js`，建议先关掉，避免两个全屏叠在一起：
+   If you already use the official `fullAppDisplay.js`, turn it off first so the two fullscreen UIs do not stack:
 
    ```bash
    spicetify config extensions fullAppDisplay.js-
    spicetify apply
    ```
 
-3. **完全退出 Spotify 再打开**（只关窗口不够）。
+3. **Fully quit Spotify and reopen it** (closing the window is not enough).
 
-## 使用
+## Usage
 
-1. 播放任意歌曲。
-2. 点 Spotify 顶栏的投影仪按钮（`Apple Music Display`），或按 `F11`。
-3. 退出：再按 `F11`、按 `Esc`，或双击全屏画面。
+1. Start playing any track.
+2. Click the projector button in Spotify’s top bar (`Apple Music Display`), or press `F11`.
+3. Exit with `F11` again, `Esc`, or a double-click on the fullscreen view.
 
-全屏里可以：
+In fullscreen you can:
 
-- 点歌词某一行跳转到对应时间
-- 拖动进度条、切歌、播放 / 暂停
-- 点星星收藏当前曲目
-- 开关随机播放和循环
+- Click a lyric line to seek to that time
+- Drag the progress bar, skip tracks, and play / pause
+- Star the current track
+- Toggle shuffle and repeat
 
-## 更新
+## Update
 
-覆盖扩展目录里的同名文件后执行：
+Overwrite the same file in your Extensions folder, then run:
 
 ```bash
 spicetify refresh -e
 ```
 
-然后完全退出并重新打开 Spotify。
+Fully quit Spotify and reopen it.
 
-## 版本
+## Versions
 
-| 版本 | 说明 |
+| Version | Notes |
 | --- | --- |
-| 1.0.0 | 封面 / 控制条 / 跟随滚动歌词的第一版可用实现 |
-| 0.0.1 | 早期快照，见 `snapshots/appleMusicNowPlaying.v0.0.1.js` |
+| 1.0.0 | First usable release: artwork, controls, and follow-scroll lyrics |
+| 0.0.1 | Early snapshot, see `snapshots/appleMusicNowPlaying.v0.0.1.js` |
 
-## 说明
+## Notes
 
-布局、歌词弹簧和错峰滚动参考了公开的 [applemusic-like-lyrics (AMLL)](https://github.com/amll-dev/applemusic-like-lyrics) 与 Apple Music Web LyricsScene 资料，不是对 Apple Music.app 原生二进制的逆向。
+Layout, lyric springs, and staggered scroll are based on the public [applemusic-like-lyrics (AMLL)](https://github.com/amll-dev/applemusic-like-lyrics) project and Apple Music Web LyricsScene writeups. This is not a reverse-engineering of the native Apple Music.app binary.
 
-图标来自 AMLL 的播放控制 SVG。
+Control icons come from AMLL’s playback SVGs.
 
-## 许可
+## License
 
 MIT
