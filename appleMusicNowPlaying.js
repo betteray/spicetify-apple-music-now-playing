@@ -187,6 +187,16 @@
 	height: 32px;
 }
 #amnp-controls button.edge.on { opacity: 1; }
+#amnp-controls button.repeat-one { position: relative; }
+#amnp-controls button.repeat-one::after {
+	content: "1";
+	position: absolute;
+	right: 3px;
+	bottom: 4px;
+	font-size: 9px;
+	font-weight: 700;
+	line-height: 1;
+}
 #amnp-controls button.play { opacity: 1; }
 #amnp-controls button:active svg { transform: scale(0.88); }
 #amnp-controls svg { display: block; }
@@ -586,24 +596,87 @@
 		);
 	};
 
-	const readShuffle = () => !!(Spicetify.Player.getShuffle?.() ?? Spicetify.Player.data?.shuffle);
-	const readRepeat = () => Spicetify.Player.getRepeat?.() ?? Spicetify.Player.data?.repeat ?? 0;
+	const playerState = () => Spicetify.Player.origin?._state || Spicetify.Player.data || {};
+
+	const readShuffle = () => {
+		const state = playerState();
+		return !!(state.shuffle ?? state.options?.shufflingContext ?? Spicetify.Player.getShuffle?.());
+	};
+
+	const readRepeat = () => {
+		const state = playerState();
+		if (typeof state.repeat === "number") return state.repeat;
+		if (state.options?.repeatingTrack) return 2;
+		if (state.options?.repeatingContext) return 1;
+		return Spicetify.Player.getRepeat?.() ?? 0;
+	};
+
+	const clickNativeControl = (testId) => {
+		const button = document.querySelector(`[data-testid="${testId}"]`);
+		if (!button) return false;
+		button.click();
+		return true;
+	};
+
+	const applyShuffle = async (next) => {
+		const api = Spicetify.Platform?.PlayerAPI || Spicetify.Player.origin;
+		try {
+			if (typeof api?.setShuffle === "function") {
+				await api.setShuffle(next);
+				return;
+			}
+		} catch {}
+		if (clickNativeControl("control-button-shuffle")) return;
+		try {
+			Spicetify.Player.setShuffle?.(next);
+		} catch {
+			Spicetify.Player.toggleShuffle?.();
+		}
+	};
+
+	const applyRepeat = async (mode) => {
+		const api = Spicetify.Platform?.PlayerAPI || Spicetify.Player.origin;
+		try {
+			if (typeof api?.setRepeat === "function") {
+				await api.setRepeat(mode);
+				return;
+			}
+		} catch {}
+		for (let i = 0; i < 3 && readRepeat() !== mode; i++) {
+			if (!clickNativeControl("control-button-repeat")) break;
+		}
+		if (readRepeat() !== mode) {
+			try {
+				Spicetify.Player.setRepeat?.(mode);
+			} catch {
+				Spicetify.Player.toggleRepeat?.();
+			}
+		}
+	};
 
 	const Controls = () => {
 		const [playing, setPlaying] = useState(Spicetify.Player.isPlaying());
 		const [shuffle, setShuffle] = useState(readShuffle);
 		const [repeat, setRepeat] = useState(readRepeat);
 		useEffect(() => {
-			const updatePlay = ({ data }) => setPlaying(!data.isPaused);
-			const syncModes = () => {
+			const sync = () => {
+				setPlaying(Spicetify.Player.isPlaying());
 				setShuffle(readShuffle());
 				setRepeat(readRepeat());
 			};
-			Spicetify.Player.addEventListener("onplaypause", updatePlay);
-			Spicetify.Player.addEventListener("songchange", syncModes);
+			Spicetify.Player.addEventListener("onplaypause", sync);
+			Spicetify.Player.addEventListener("songchange", sync);
+			const events = Spicetify.Player.origin?.getEvents?.();
+			const listener = events?.addListener?.("update", sync);
+			const timer = setInterval(sync, 800);
 			return () => {
-				Spicetify.Player.removeEventListener("onplaypause", updatePlay);
-				Spicetify.Player.removeEventListener("songchange", syncModes);
+				Spicetify.Player.removeEventListener("onplaypause", sync);
+				Spicetify.Player.removeEventListener("songchange", sync);
+				clearInterval(timer);
+				try {
+					if (typeof listener === "function") listener();
+					else events?.removeListener?.(listener);
+				} catch {}
 			};
 		}, []);
 		return react.createElement(
@@ -613,9 +686,12 @@
 				"button",
 				{
 					className: `edge${shuffle ? " on" : ""}`,
-					onClick: () => {
-						Spicetify.Player.toggleShuffle();
-						setTimeout(() => setShuffle(readShuffle()), 40);
+					onClick: async (event) => {
+						event.stopPropagation();
+						const next = !readShuffle();
+						setShuffle(next);
+						await applyShuffle(next);
+						setTimeout(() => setShuffle(readShuffle()), 200);
 					},
 				},
 				renderIcon("shuffle")
@@ -626,10 +702,13 @@
 			react.createElement(
 				"button",
 				{
-					className: `edge${repeat ? " on" : ""}`,
-					onClick: () => {
-						Spicetify.Player.toggleRepeat();
-						setTimeout(() => setRepeat(readRepeat()), 40);
+					className: `edge${repeat === 2 ? " on repeat-one" : repeat ? " on" : ""}`,
+					onClick: async (event) => {
+						event.stopPropagation();
+						const next = readRepeat() === 2 ? 0 : 2;
+						setRepeat(next);
+						await applyRepeat(next);
+						setTimeout(() => setRepeat(readRepeat()), 200);
 					},
 				},
 				renderIcon("repeat")
@@ -914,10 +993,26 @@
 		else activate();
 	}
 
-	new Spicetify.Topbar.Button(
-		"Apple Music Display",
-		`<svg role="img" height="16" width="16" viewBox="0 0 16 16" fill="currentColor">${Spicetify.SVGIcons.projector}</svg>`,
-		activate
-	);
 	Spicetify.Mousetrap.bind("f11", toggle);
+
+	function bindNativeFullscreenButton(button) {
+		if (!button || button.dataset.amnpBound) return;
+		button.dataset.amnpBound = "1";
+		button.addEventListener(
+			"click",
+			(event) => {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				toggle();
+			},
+			true
+		);
+	}
+
+	function hookNativeFullscreenButton() {
+		document.querySelectorAll('[data-testid="fullscreen-mode-button"]').forEach(bindNativeFullscreenButton);
+	}
+
+	hookNativeFullscreenButton();
+	new MutationObserver(hookNativeFullscreenButton).observe(document.body, { childList: true, subtree: true });
 })();

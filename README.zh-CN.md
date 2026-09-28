@@ -12,7 +12,7 @@ Spicetify 扩展：在 Spotify 里用接近 Apple Music 全屏的方式显示封
 - 右侧同步歌词：当前行居中，上下行淡出并带跟随滚动
 - 封面模糊流体背景
 - 歌词优先用 Spotify 官方同步歌词，没有时回退到 [LRCLIB](https://lrclib.net)
-- 顶栏按钮或 `F11` 进入 / 退出全屏，`Esc` 或双击画面退出
+- Spotify 底栏全屏按钮或 `F11` 进入 / 退出全屏，`Esc` 或双击画面退出
 
 ## 要求
 
@@ -50,7 +50,7 @@ Spicetify 扩展：在 Spotify 里用接近 Apple Music 全屏的方式显示封
 ## 使用
 
 1. 播放任意歌曲。
-2. 点 Spotify 顶栏的投影仪按钮（`Apple Music Display`），或按 `F11`。
+2. 点 Spotify 底栏原来的全屏按钮，或按 `F11`。
 3. 退出：再按 `F11`、按 `Esc`，或双击全屏画面。
 
 全屏里可以：

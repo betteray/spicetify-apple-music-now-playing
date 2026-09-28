@@ -12,7 +12,7 @@ Current version: **1.0.0**
 - Synced lyrics on the right: the current line stays centered, nearby lines fade, and the list follows with a staggered scroll
 - Fluid blurred artwork background
 - Lyrics prefer Spotify’s official synced lyrics, then fall back to [LRCLIB](https://lrclib.net)
-- Open or close fullscreen from the top-bar button or `F11`; exit with `Esc` or a double-click
+- Open or close fullscreen from Spotify’s now-playing fullscreen button or `F11`; exit with `Esc` or a double-click
 
 ## Requirements
 
@@ -50,7 +50,7 @@ Current version: **1.0.0**
 ## Usage
 
 1. Start playing any track.
-2. Click the projector button in Spotify’s top bar (`Apple Music Display`), or press `F11`.
+2. Click the fullscreen button in Spotify’s now-playing bar, or press `F11`.
 3. Exit with `F11` again, `Esc`, or a double-click on the fullscreen view.
 
 In fullscreen you can:
