@@ -215,6 +215,7 @@
 	padding: 0 8vw 0 0;
 	overflow: hidden;
 	mix-blend-mode: plus-lighter;
+	touch-action: none;
 }
 #amnp-lyrics {
 	position: relative;
@@ -247,13 +248,219 @@
 #amnp-empty-lyrics {
 	height: 100%;
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
 	color: rgba(255, 255, 255, 0.28);
 	font-size: 28px;
 	font-weight: 500;
 	padding-left: 0;
+	mix-blend-mode: plus-lighter;
 }
-`;
+.amnp-loading-dots {
+	display: flex;
+	align-items: center;
+	gap: 11px;
+}
+.amnp-loading-dots i {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: #fff;
+	opacity: 0.16;
+	transform: scale(0.86);
+	animation: amnp-dot 1.6s ease-in-out infinite;
+}
+.amnp-loading-dots i:nth-child(2) { animation-delay: 0.18s; }
+.amnp-loading-dots i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes amnp-dot {
+	0%, 80%, 100% { opacity: 0.14; transform: scale(0.86); }
+	40% { opacity: 0.5; transform: scale(1); }
+}
+#amnp-corner {
+	position: absolute;
+	right: 22px;
+	bottom: 18px;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	mix-blend-mode: plus-lighter;
+}
+#amnp-lyric-source {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	pointer-events: none;
+	color: rgba(255, 255, 255, 0.34);
+}
+#amnp-lyric-source svg,
+#amnp-insight-btn svg {
+	display: block;
+	flex-shrink: 0;
+	opacity: 0.9;
+}
+#amnp-lyric-source span,
+#amnp-insight-btn span {
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	line-height: 1;
+}
+#amnp-insight-btn {
+	background: none;
+	border: 0;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: rgba(255, 255, 255, 0.4);
+	cursor: pointer;
+	font: inherit;
+}
+#amnp-insight-btn:hover,
+#amnp-insight-btn.on {
+	color: rgba(255, 255, 255, 0.82);
+}
+#amnp-insight {
+	position: absolute;
+	top: 6vh;
+	right: 3.5vw;
+	bottom: 9vh;
+	width: min(42vw, 560px);
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	padding: 32px 34px 26px;
+	border-radius: 24px;
+	background: rgba(16, 16, 16, 0.46);
+	backdrop-filter: blur(40px) saturate(1.15);
+	box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+	color: rgba(255, 255, 255, 0.88);
+}
+#amnp-insight-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+#amnp-insight-title {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.46);
+}
+#amnp-insight-song {
+	margin-top: 6px;
+	font-size: 18px;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	color: rgba(255, 255, 255, 0.92);
+}
+#amnp-insight-close {
+	background: none;
+	border: 0;
+	padding: 0;
+	width: 28px;
+	height: 28px;
+	color: rgba(255, 255, 255, 0.45);
+	cursor: pointer;
+	font-size: 22px;
+	line-height: 1;
+}
+#amnp-insight-body {
+	flex: 1;
+	overflow-y: auto;
+	user-select: text;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.7;
+	letter-spacing: 0.01em;
+	color: rgba(255, 255, 255, 0.86);
+}
+#amnp-insight-body p {
+	margin: 0 0 1em;
+}
+#amnp-insight-body p:last-child {
+	margin-bottom: 0;
+}
+.amnp-insight-hook {
+	font-size: 18px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.45;
+	color: rgba(255, 255, 255, 0.94);
+	margin: 0 0 1.15em;
+}
+.amnp-insight-kicker {
+	margin: 1.15em 0 0.4em;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.38);
+}
+.amnp-insight-kicker:first-child {
+	margin-top: 0;
+}
+.amnp-insight-image {
+	margin: 0 0 0.85em;
+}
+.amnp-insight-quote {
+	margin: 0 0 0.25em;
+	font-size: 14px;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.62);
+}
+.amnp-insight-caveat {
+	margin-top: 1.2em;
+	font-size: 13px;
+	line-height: 1.55;
+	color: rgba(255, 255, 255, 0.42);
+}
+#amnp-insight-key {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 8px;
+}
+#amnp-insight-key input {
+	width: 100%;
+	border: 0;
+	outline: none;
+	border-radius: 12px;
+	padding: 12px 14px;
+	background: rgba(255, 255, 255, 0.1);
+	color: #fff;
+	font-size: 14px;
+}
+#amnp-insight-key button {
+	align-self: flex-start;
+	border: 0;
+	border-radius: 100px;
+	padding: 8px 16px;
+	background: rgba(255, 255, 255, 0.92);
+	color: #111;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+#amnp-insight-hint,
+#amnp-insight-error {
+	font-size: 13px;
+	line-height: 1.55;
+	color: rgba(255, 255, 255, 0.48);
+}
+#amnp-insight-error { color: rgba(255, 190, 190, 0.86); }
+#amnp-insight-foot {
+	margin-top: auto;
+	font-size: 11px;
+	color: rgba(255, 255, 255, 0.32);
+	cursor: pointer;
+}
+`
 
 	function loadCoverImage(url) {
 		return new Promise((resolve, reject) => {
@@ -428,6 +635,105 @@
 		return lines.sort((a, b) => a.startTime - b.startTime);
 	}
 
+	function sleep(ms) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	function withTimeout(promise, ms = 8000) {
+		return Promise.race([
+			promise,
+			new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
+		]);
+	}
+
+	function decodeBase64Utf8(content) {
+		const bytes = Uint8Array.from(atob(content), (char) => char.charCodeAt(0));
+		return new TextDecoder("utf-8").decode(bytes);
+	}
+
+	function isCreditLine(text) {
+		return /^(作词|作曲|编曲|制作人?|词|曲)\s*[:：]/.test(text);
+	}
+
+	function usableLines(lines) {
+		const filtered = (lines || []).filter((line) => line.text && line.text !== "♪" && !isCreditLine(line.text));
+		return filtered.length ? filtered : null;
+	}
+
+	function plainToLines(text) {
+		const lines = (text || "")
+			.split(/\r?\n/)
+			.map((line) => line.trim())
+			.filter(Boolean)
+			.map((line) => ({ startTime: null, text: line }));
+		return usableLines(lines);
+	}
+
+	function lrcToLines(lrc) {
+		if (!lrc || lrc.includes("纯音乐")) return null;
+		return usableLines(parseLRC(lrc));
+	}
+
+	function cleanTitle(title) {
+		return (title || "")
+			.replace(/-\s+(feat|with|prod).*/i, "")
+			.replace(/(\(|\[)(feat|with|prod)\.?\s+.*(\)|\])$/i, "")
+			.replace(/\s-\s.*/, "")
+			.replace(/\s*\((deluxe|remaster(ed)?|radio edit|live|explicit|clean).*?\)/gi, "")
+			.replace(/\s+/g, " ")
+			.trim() || title || "";
+	}
+
+	function primaryArtist(name) {
+		return (name || "").split(/,|&|\/| feat\.? | featuring /i)[0].trim();
+	}
+
+	function trackQuery(meta) {
+		let title = meta.title || "";
+		let artist = primaryArtist(meta.artist_name || "");
+		const dashed = title.match(/^(.*?)[-–—](.+)$/);
+		if (dashed) {
+			const left = dashed[1].trim();
+			const right = dashed[2].trim();
+			if (artist && (right === artist || right.includes(artist) || artist.includes(right))) title = left;
+		}
+		return { title: cleanTitle(title), artist, album: meta.album_title || "" };
+	}
+
+	function durationFits(localSecs, remoteSecs) {
+		if (!localSecs || !remoteSecs) return true;
+		return Math.abs(localSecs - remoteSecs) <= 5;
+	}
+
+	function linesFromLrclibBody(body) {
+		if (!body || body.instrumental) return null;
+		if (body.syncedLyrics) {
+			const lines = lrcToLines(body.syncedLyrics);
+			if (lines) return lines;
+		}
+		if (body.plainLyrics) return plainToLines(body.plainLyrics);
+		return null;
+	}
+
+	async function lrclibRequest(url) {
+		const headers = { "x-user-agent": `spicetify v${Spicetify.Config.version} (https://github.com/spicetify/cli)` };
+		let res = await fetch(url, { headers });
+		if (res.status === 503) {
+			await sleep(800);
+			res = await fetch(url, { headers });
+			if (res.status === 503) return { overload: true, body: null };
+		}
+		if (!res.ok) return { overload: false, body: null };
+		return { overload: false, body: await res.json() };
+	}
+
+	function lrclibUrl(path, artist, title, album, durationSecs) {
+		const params = new URLSearchParams({ track_name: title, artist_name: artist });
+		if (album) params.set("album_name", album);
+		if (durationSecs >= 1 && durationSecs <= 3600) params.set("duration", String(Math.round(durationSecs * 100) / 100));
+		return `https://lrclib.net/api/${path}?${params}`;
+	}
+
 	async function fetchSpotifyLyrics(uri) {
 		const id = uri?.split(":")[2];
 		if (!id) return null;
@@ -436,50 +742,449 @@
 		);
 		const lyrics = body?.lyrics;
 		if (!lyrics?.lines?.length) return null;
-		if (lyrics.syncType === "LINE_SYNCED") {
-			return lyrics.lines
-				.map((line) => ({ startTime: Number(line.startTimeMs) || 0, text: line.words || "" }))
-				.filter((line) => line.text && line.text !== "♪");
-		}
-		return lyrics.lines.map((line) => ({ startTime: null, text: line.words || "" })).filter((line) => line.text);
+		const lines = lyrics.lines
+			.map((line) => ({
+				startTime: lyrics.syncType === "LINE_SYNCED" ? Number(line.startTimeMs) || 0 : null,
+				text: line.words || "",
+			}))
+			.filter((line) => line.text && line.text !== "♪");
+		return lines.length ? lines : null;
 	}
 
-	async function fetchLrclibLyrics(meta) {
-		const params = new URLSearchParams({
-			track_name: meta.title || "",
-			artist_name: meta.artist_name || "",
-			album_name: meta.album_title || "",
-			duration: String((Spicetify.Platform.PlayerAPI._state.duration || 0) / 1000),
-		});
-		const res = await fetch(`https://lrclib.net/api/get?${params}`, {
-			headers: { "x-user-agent": `spicetify v${Spicetify.Config.version} (https://github.com/spicetify/cli)` },
-		});
-		if (!res.ok) return null;
-		const body = await res.json();
-		if (body.syncedLyrics) return parseLRC(body.syncedLyrics).filter((line) => line.text);
-		if (body.plainLyrics) {
-			return body.plainLyrics
-				.split(/\r?\n/)
-				.map((text) => text.trim())
-				.filter(Boolean)
-				.map((text) => ({ startTime: null, text }));
+	async function fetchLrclibLyrics(meta, durationMs) {
+		const { title, artist, album } = trackQuery(meta);
+		const durationSecs = (durationMs || 0) / 1000;
+		if (!title) return null;
+		const urls = [
+			...new Set([
+				lrclibUrl("get", artist, title, album, durationSecs),
+				lrclibUrl("get", artist, title, "", durationSecs),
+				lrclibUrl("get", artist, title, "", 0),
+				lrclibUrl("search", artist, title, "", 0),
+			]),
+		];
+		for (const url of urls) {
+			const { overload, body } = await lrclibRequest(url);
+			if (overload) return null;
+			if (Array.isArray(body)) {
+				const ranked = body
+					.map((item) => ({
+						item,
+						delta: Math.abs((item.duration || 0) - durationSecs),
+						synced: !!item.syncedLyrics,
+					}))
+					.sort((a, b) => Number(b.synced) - Number(a.synced) || a.delta - b.delta);
+				const best = ranked.find((entry) => durationFits(durationSecs, entry.item.duration)) || ranked[0];
+				const lines = linesFromLrclibBody(best?.item);
+				if (lines) return lines;
+			} else {
+				const lines = linesFromLrclibBody(body);
+				if (lines) return lines;
+			}
 		}
 		return null;
 	}
 
+	async function fetchLrcCxLyrics(meta) {
+		const { title, artist, album } = trackQuery(meta);
+		if (!title) return null;
+		const params = new URLSearchParams({ title, artist });
+		if (album) params.set("album", album);
+		const url = `https://api.lrc.cx/lyrics?${params}`;
+		try {
+			const res = await fetch(url);
+			if (res.ok) {
+				const text = await res.text();
+				if (text && !text.startsWith("{")) return lrcToLines(text);
+			}
+		} catch {}
+		try {
+			const body = await Spicetify.CosmosAsync.get(url);
+			const text = typeof body === "string" ? body : "";
+			if (text && !text.startsWith("{")) return lrcToLines(text);
+		} catch {}
+		return null;
+	}
+
+	async function fetchKugouLyrics(meta, durationMs) {
+		const { title, artist } = trackQuery(meta);
+		if (!title || !artist) return null;
+		const headers = { "User-Agent": "Mozilla/5.0" };
+		const search = await Spicetify.CosmosAsync.get(
+			`https://lyrics.kugou.com/search?ver=1&man=yes&client=pc&keyword=${encodeURIComponent(`${artist} - ${title}`)}&duration=${Math.round(durationMs || 0)}&hash=`,
+			null,
+			headers
+		);
+		const candidates = search?.candidates || [];
+		if (!candidates.length) return null;
+		const durationSecs = (durationMs || 0) / 1000;
+		const hit =
+			candidates.find(
+				(item) =>
+					(item.song || "") === title &&
+					(item.singer || "").includes(artist) &&
+					durationFits(durationSecs, (item.duration || 0) / 1000)
+			) ||
+			candidates.find((item) => (item.song || "") === title && (item.singer || "").includes(artist)) ||
+			null;
+		if (!hit?.id || !hit.accesskey) return null;
+		const body = await Spicetify.CosmosAsync.get(
+			`https://lyrics.kugou.com/download?ver=1&client=pc&id=${hit.id}&accesskey=${hit.accesskey}&fmt=lrc&charset=utf8`,
+			null,
+			headers
+		);
+		const content = body?.content;
+		if (!content) return null;
+		const lrc = decodeBase64Utf8(content);
+		return lrcToLines(lrc);
+	}
+
+	function pickNeteaseSong(songs, title, artist, album, durationMs) {
+		let best = null;
+		let bestScore = 0;
+		for (const song of songs) {
+			const name = song.name || "";
+			const singers = (song.artists || song.ar || []).map((item) => item.name).join(" ");
+			const albumName = (song.album || song.al || {}).name || "";
+			const duration = song.duration || song.dt || 0;
+			if (/翻自|翻唱/.test(name) && !singers.includes(artist)) continue;
+			let score = 0;
+			if (name === title) score += 5;
+			else if (name.includes(title)) score += 2;
+			if (singers.includes(artist)) score += 5;
+			if (album && albumName.toLowerCase() === album.toLowerCase()) score += 3;
+			if (Math.abs(duration - durationMs) < 3000) score += 4;
+			if (score > bestScore) {
+				bestScore = score;
+				best = song;
+			}
+		}
+		return bestScore >= 5 ? best : null;
+	}
+
+	async function fetchNeteaseLyrics(meta, durationMs) {
+		const { title, artist, album } = trackQuery(meta);
+		if (!title) return null;
+		const headers = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0" };
+		const queries = [
+			`https://music.xianqiao.wang/neteaseapiv2/search?limit=10&type=1&keywords=${encodeURIComponent(`${title} ${artist}`)}`,
+			`https://music.163.com/api/cloudsearch/pc?s=${encodeURIComponent(`${title} ${artist}`)}&type=1&limit=10`,
+		];
+		let song = null;
+		for (const url of queries) {
+			try {
+				const search = await Spicetify.CosmosAsync.get(url, null, headers);
+				const songs = search?.result?.songs || [];
+				song = pickNeteaseSong(songs, title, artist, album, durationMs);
+				if (song) break;
+			} catch {}
+		}
+		if (!song?.id) return null;
+		const lyricUrls = [
+			`https://music.xianqiao.wang/neteaseapiv2/lyric?id=${song.id}`,
+			`https://music.163.com/api/song/lyric?id=${song.id}&lv=1&kv=1&tv=-1`,
+		];
+		for (const url of lyricUrls) {
+			try {
+				const body = await Spicetify.CosmosAsync.get(url, null, headers);
+				const lines = lrcToLines(body?.lrc?.lyric);
+				if (lines) return lines;
+			} catch {}
+		}
+		return null;
+	}
+
+	async function fetchQqLyrics(meta, durationMs) {
+		const { title, artist } = trackQuery(meta);
+		if (!title || !artist) return null;
+		const headers = { Referer: "https://y.qq.com", "User-Agent": "Mozilla/5.0" };
+		const payload = {
+			req_1: {
+				method: "DoSearchForQQMusicDesktop",
+				module: "music.search.SearchCgiService",
+				param: { num_per_page: 8, page_num: 1, query: `${title} ${artist}`, search_type: 0 },
+			},
+		};
+		const search = await Spicetify.CosmosAsync.get(
+			`https://u.y.qq.com/cgi-bin/musicu.fcg?data=${encodeURIComponent(JSON.stringify(payload))}`,
+			null,
+			headers
+		);
+		const songs = search?.req_1?.data?.body?.song?.list || [];
+		const durationSecs = (durationMs || 0) / 1000;
+		const hit =
+			songs.find((song) => {
+				const name = song.name || song.title || "";
+				const singers = (song.singer || []).map((item) => item.name).join(" ");
+				return name === title && singers.includes(artist) && durationFits(durationSecs, song.interval);
+			}) ||
+			songs.find((song) => {
+				const name = song.name || song.title || "";
+				const singers = (song.singer || []).map((item) => item.name).join(" ");
+				return name === title && singers.includes(artist);
+			});
+		if (!hit) return null;
+		const mid = hit.mid || hit.songmid;
+		const body = await Spicetify.CosmosAsync.get(
+			`https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid=${mid}&g_tk=5381&format=json&nobase64=1`,
+			null,
+			headers
+		);
+		let lrc = body?.lyric;
+		if (lrc && !lrc.includes("[") && /^[A-Za-z0-9+/=]+$/.test(lrc.replace(/\s/g, ""))) {
+			try {
+				lrc = decodeBase64Utf8(lrc);
+			} catch {}
+		}
+		return lrcToLines(lrc);
+	}
+
 	async function loadLyrics() {
 		const item = Spicetify.Player.data?.item;
-		if (!item) return [];
-		try {
-			const spotify = await fetchSpotifyLyrics(item.uri);
-			if (spotify?.length) return spotify;
-		} catch {}
-		try {
-			const lrclib = await fetchLrclibLyrics(item.metadata || {});
-			if (lrclib?.length) return lrclib;
-		} catch {}
-		return [];
+		if (!item) return { lines: [], source: "" };
+		const meta = item.metadata || {};
+		const duration = Spicetify.Platform.PlayerAPI._state.duration || 0;
+		const sources = [
+			{ name: "Spotify", fetch: () => fetchSpotifyLyrics(item.uri) },
+			{ name: "LRCLIB", fetch: () => fetchLrclibLyrics(meta, duration) },
+			{ name: "LRC.cx", fetch: () => fetchLrcCxLyrics(meta) },
+			{ name: "酷狗", fetch: () => fetchKugouLyrics(meta, duration) },
+			{ name: "网易云", fetch: () => fetchNeteaseLyrics(meta, duration) },
+			{ name: "QQ", fetch: () => fetchQqLyrics(meta, duration) },
+		];
+		for (const source of sources) {
+			try {
+				const lines = await withTimeout(source.fetch());
+				if (lines?.length) return { lines, source: source.name };
+			} catch {}
+		}
+		return { lines: [], source: "" };
 	}
+
+	const DEEPSEEK_KEY = "amnp-deepseek-key";
+
+	function getDeepseekKey() {
+		return (localStorage.getItem(DEEPSEEK_KEY) || "").trim();
+	}
+
+	function saveDeepseekKey(key) {
+		localStorage.setItem(DEEPSEEK_KEY, (key || "").trim());
+	}
+
+	function extractChatText(data) {
+		return (data?.choices?.[0]?.message?.content || "").trim();
+	}
+
+	function insightCacheKey(uri) {
+		return `${uri || ""}::v2`;
+	}
+
+	function lyricsPrompt(track, lines) {
+		const lyrics = (lines || []).map((line) => line.text).filter(Boolean).join("\n");
+		return `歌曲：${track.title || "未知"}
+歌手：${track.artist || "未知"}
+专辑：${track.album || "未知"}
+
+歌词：
+${lyrics || "（暂无歌词，请只根据歌名、歌手与专辑理解。）"}`;
+	}
+
+	function parseInsight(raw) {
+		if (!raw) return null;
+		const fenced = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+		const match = fenced.match(/\{[\s\S]*\}/);
+		if (match) {
+			try {
+				const data = JSON.parse(match[0]);
+				if (data && (data.hook || data.story || data.images)) return data;
+			} catch {}
+		}
+		return { story: raw };
+	}
+
+	function renderInsight(data) {
+		if (!data) return null;
+		const blocks = [];
+		if (data.hook) blocks.push(react.createElement("p", { className: "amnp-insight-hook", key: "hook" }, data.hook));
+		const sections = [
+			["在讲什么", data.story],
+			["情绪", data.mood],
+			["更深一层", data.deeper],
+		];
+		for (const [label, value] of sections) {
+			if (!value) continue;
+			blocks.push(react.createElement("div", { className: "amnp-insight-kicker", key: `${label}-k` }, label));
+			blocks.push(react.createElement("p", { key: label }, value));
+		}
+		if (Array.isArray(data.images) && data.images.length) {
+			blocks.push(react.createElement("div", { className: "amnp-insight-kicker", key: "images-k" }, "意象"));
+			data.images.forEach((item, index) => {
+				const quote = item?.quote || "";
+				const note = item?.note || "";
+				if (!quote && !note) return;
+				blocks.push(
+					react.createElement(
+						"div",
+						{ className: "amnp-insight-image", key: `img-${index}` },
+						quote ? react.createElement("div", { className: "amnp-insight-quote" }, quote) : null,
+						note ? react.createElement("p", null, note) : null
+					)
+				);
+			});
+		}
+		if (data.caveat) blocks.push(react.createElement("div", { className: "amnp-insight-caveat", key: "caveat" }, data.caveat));
+		if (!blocks.length && data.story) return react.createElement("p", null, data.story);
+		return blocks;
+	}
+
+	async function interpretWithDeepseek(track, lines) {
+		const key = getDeepseekKey();
+		if (!key) throw new Error("NO_KEY");
+		const body = {
+			model: "deepseek-chat",
+			temperature: 0.55,
+			max_tokens: 1800,
+			messages: [
+				{
+					role: "system",
+					content: `你是歌词释义编辑，写法接近 Songtell / Lyrithm：解释「这首歌在说什么」，不是读后感，也不是中学赏析套话。
+只输出一个 JSON 对象，不要 Markdown、不要代码围栏：
+{
+  "hook": "一句话点破这首歌真正在说的事，要具体，禁止空泛的『关于爱情与离别』『表达了思念』",
+  "story": "2到4句：谁在对谁说话、处在什么处境、叙事怎么推进。紧贴歌词里的场景、人称和细节。",
+  "mood": "情绪如何从开头走到结尾，转折落在哪类句子或意象上。",
+  "images": [
+    {"quote": "原词短引，不超过22字", "note": "这个意象在本歌里具体指向什么，为什么出现或反复"}
+  ],
+  "deeper": "第二层读法：自我欺骗、反讽、身份、时代或城市生活。必须能从歌词推出来；推不出来就写『歌词没有给出足够线索』。禁止编造艺人生平、访谈、专辑概念、社会事件。",
+  "caveat": "可选。歌词残缺、明显是翻唱/现场、或有多种读法时，用一句话标明。"
+}
+images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡汤、emoji、把副歌复述成主题。`,
+				},
+				{ role: "user", content: lyricsPrompt(track, lines) },
+			],
+		};
+		const headers = { "Content-Type": "application/json", Authorization: `Bearer ${key}` };
+		const urls = ["https://api.deepseek.com/chat/completions", "https://api.deepseek.com/v1/chat/completions"];
+		let lastError = new Error("DeepSeek 没有返回内容");
+		for (const url of urls) {
+			try {
+				const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+				const data = await res.json();
+				const text = extractChatText(data);
+				if (text) return text;
+				if (data?.error?.message) lastError = new Error(data.error.message);
+			} catch (error) {
+				lastError = error;
+			}
+			try {
+				const data = await Spicetify.CosmosAsync.post(url, body, headers);
+				const text = extractChatText(data);
+				if (text) return text;
+				if (data?.error?.message) lastError = new Error(data.error.message);
+			} catch (error) {
+				lastError = error;
+			}
+		}
+		throw lastError;
+	}
+
+	const LyricSourceMark = ({ source }) => {
+		if (!source) return null;
+		return react.createElement(
+			"div",
+			{
+				id: "amnp-lyric-source",
+				title: `歌词来源：${source}`,
+			},
+			react.createElement("svg", {
+				width: 11,
+				height: 11,
+				viewBox: "0 0 16 16",
+				fill: "currentColor",
+				dangerouslySetInnerHTML: {
+					__html: '<path d="M4.2 2.4h7.6c.7 0 1.2.5 1.2 1.2v8.8c0 .7-.5 1.2-1.2 1.2H4.2c-.7 0-1.2-.5-1.2-1.2V3.6c0-.7.5-1.2 1.2-1.2zm.8 3.1c0-.3.2-.5.5-.5h5c.3 0 .5.2.5.5s-.2.5-.5.5h-5c-.3 0-.5-.2-.5-.5zm0 2.4c0-.3.2-.5.5-.5h5c.3 0 .5.2.5.5s-.2.5-.5.5h-5c-.3 0-.5-.2-.5-.5zm0 2.4c0-.3.2-.5.5-.5h3.2c.3 0 .5.2.5.5s-.2.5-.5.5H5.5c-.3 0-.5-.2-.5-.5z"/>',
+				},
+			}),
+			react.createElement("span", null, source)
+		);
+	};
+
+	const InsightPanel = ({ track, status, text, error, onClose, onSaveKey, onResetKey }) => {
+		const [draftKey, setDraftKey] = useState("");
+					const insight = parseInsight(text);
+		const paragraphs = (text || "").split(/\n{2,}|\n/).map((part) => part.trim()).filter(Boolean);
+		return react.createElement(
+			"div",
+			{
+				id: "amnp-insight",
+				onDoubleClick: (event) => event.stopPropagation(),
+				onPointerDown: (event) => event.stopPropagation(),
+			},
+			react.createElement(
+				"div",
+				{ id: "amnp-insight-head" },
+				react.createElement(
+					"div",
+					null,
+					react.createElement("div", { id: "amnp-insight-title" }, "AI解读"),
+					react.createElement("div", { id: "amnp-insight-song" }, track.title || "当前歌曲")
+				),
+				react.createElement("button", { id: "amnp-insight-close", onClick: onClose }, "×")
+			),
+			status === "need-key"
+				? react.createElement(
+						"div",
+						{ id: "amnp-insight-key" },
+						react.createElement("div", { id: "amnp-insight-hint" }, "第一次使用需要 DeepSeek API Key，保存在本地，只会用来解读当前歌词。"),
+						react.createElement("input", {
+							type: "password",
+							placeholder: "粘贴 DeepSeek API Key",
+							value: draftKey,
+							onChange: (event) => setDraftKey(event.target.value),
+							onDoubleClick: (event) => event.stopPropagation(),
+						}),
+						react.createElement(
+							"button",
+							{
+								onClick: () => {
+									if (draftKey.trim()) onSaveKey(draftKey.trim());
+								},
+							},
+							"开始 AI解读"
+						),
+						react.createElement(
+							"div",
+							{ id: "amnp-insight-hint" },
+							"在 DeepSeek 开放平台创建：platform.deepseek.com/api_keys"
+						)
+				  )
+				: status === "loading"
+					? react.createElement(
+							"div",
+							{ id: "amnp-insight-body" },
+							react.createElement(
+								"div",
+								{ className: "amnp-loading-dots", "aria-hidden": "true" },
+								react.createElement("i"),
+								react.createElement("i"),
+								react.createElement("i")
+							)
+					  )
+					: status === "error"
+						? react.createElement("div", { id: "amnp-insight-error" }, error || "解读失败，请稍后再试。")
+						: react.createElement(
+								"div",
+								{ id: "amnp-insight-body" },
+								insight?.hook || insight?.story || insight?.images
+									? renderInsight(insight)
+									: paragraphs.map((part, index) => react.createElement("p", { key: index }, part))
+						  ),
+			status === "ready" || status === "error"
+				? react.createElement("div", { id: "amnp-insight-foot", onClick: onResetKey }, "更换 DeepSeek API Key")
+				: null
+		);
+	};
 
 	const Glyph = ({ size, viewBox, html }) =>
 		react.createElement("svg", {
@@ -531,6 +1236,11 @@
 			size: 22,
 			viewBox: "0 0 24 24",
 			html: '<path d="M12 2.8 14.07 9.15 20.75 9.16 15.35 13.09 17.41 19.44 12 15.52 6.59 19.44 8.65 13.09 3.25 9.16 9.93 9.15Z"/>',
+		},
+		sparkle: {
+			size: 13,
+			viewBox: "0 0 24 24",
+			html: '<path d="M12 2.2 13.35 7.1 18.2 8.4 13.35 9.7 12 14.6 10.65 9.7 5.8 8.4 10.65 7.1Z"/><path d="M18.7 13.4 19.45 16.1 22.1 16.85 19.45 17.6 18.7 20.3 17.95 17.6 15.3 16.85 17.95 16.1Z"/>',
 		},
 	};
 
@@ -717,13 +1427,17 @@
 		);
 	};
 
-	const Lyrics = ({ lines, artRef }) => {
+	const Lyrics = ({ lines, artRef, status }) => {
 		const [progress, setProgress] = useState(Spicetify.Player.getProgress());
 		const viewportRef = useRef(null);
 		const lineRefs = useRef([]);
 		const springsRef = useRef([]);
 		const lastIndexRef = useRef(-1);
 		const activeIndexRef = useRef(-1);
+		const userOffsetRef = useRef(0);
+		const resumeAtRef = useRef(0);
+		const frozenIndexRef = useRef(0);
+		const dragRef = useRef({ active: false, lastY: 0, moved: false });
 
 		useEffect(() => {
 			const onProgress = ({ data }) => setProgress(data);
@@ -733,7 +1447,12 @@
 
 		const activeIndex = useMemo(() => {
 			if (!lines.length) return -1;
-			if (lines[0].startTime == null) return -1;
+			if (lines[0].startTime == null) {
+				const duration = Spicetify.Platform.PlayerAPI._state.duration || 0;
+				if (!duration || lines.length < 2) return 0;
+				const t = Math.min(1, Math.max(0, progress / duration));
+				return Math.min(lines.length - 1, Math.round(t * (lines.length - 1)));
+			}
 			let index = 0;
 			for (let i = 0; i < lines.length; i++) {
 				if (progress >= lines[i].startTime) index = i;
@@ -742,6 +1461,19 @@
 			return index;
 		}, [lines, progress]);
 		activeIndexRef.current = activeIndex;
+
+		const pauseFollow = () => {
+			const now = performance.now();
+			if (now >= resumeAtRef.current) {
+				frozenIndexRef.current = Math.max(0, activeIndexRef.current);
+			}
+			resumeAtRef.current = now + 2800;
+		};
+
+		const resumeFollow = () => {
+			userOffsetRef.current = 0;
+			resumeAtRef.current = 0;
+		};
 
 		useEffect(() => {
 			springsRef.current = lines.map((_, i) => {
@@ -753,6 +1485,22 @@
 				return createSpring(0.9, Math.sqrt(stiffness) * 2.2, stiffness);
 			});
 			lastIndexRef.current = -1;
+			userOffsetRef.current = 0;
+			resumeAtRef.current = 0;
+			frozenIndexRef.current = 0;
+		}, [lines]);
+
+		useEffect(() => {
+			const viewport = viewportRef.current;
+			if (!viewport || !lines.length) return;
+			const onWheel = (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				pauseFollow();
+				userOffsetRef.current -= event.deltaY;
+			};
+			viewport.addEventListener("wheel", onWheel, { passive: false });
+			return () => viewport.removeEventListener("wheel", onWheel);
 		}, [lines]);
 
 		useEffect(() => {
@@ -761,7 +1509,7 @@
 			const tick = (now) => {
 				const dt = Math.min(0.033, (now - last) / 1000);
 				last = now;
-				const currentIndex = activeIndexRef.current;
+				const currentIndex = Math.max(0, activeIndexRef.current);
 				const viewport = viewportRef.current;
 				const art = artRef?.current;
 				const count = lines.length;
@@ -778,35 +1526,56 @@
 					const heights = nodes.map((node) => Math.max(node.offsetHeight, 1));
 					const prefixes = [0];
 					for (let i = 0; i < heights.length; i++) prefixes.push(prefixes[i] + heights[i]);
-					const focusIndex = Math.max(0, currentIndex);
+					const following = now >= resumeAtRef.current;
+					if (following) userOffsetRef.current = 0;
+					const focusIndex = Math.max(0, Math.min(count - 1, following ? currentIndex : frozenIndexRef.current));
 					const viewBox = viewport.getBoundingClientRect();
 					const artBox = art?.getBoundingClientRect();
 					const focusY = artBox && artBox.height
 						? artBox.top + artBox.height / 2 - viewBox.top
 						: viewBox.height * 0.42;
 					const activeMid = prefixes[focusIndex] + heights[focusIndex] / 2;
+					const maxOffset = activeMid - prefixes[0];
+					const minOffset = activeMid - prefixes[Math.max(0, count - 1)];
+					userOffsetRef.current = Math.min(maxOffset, Math.max(minOffset, userOffsetRef.current));
 					const layoutReady = viewBox.height > 0 && heights.every((h) => h > 1);
 					const snap = lastIndexRef.current < 0;
-					const indexChanged = lastIndexRef.current !== currentIndex;
+					const indexChanged = following && lastIndexRef.current !== currentIndex;
 					let delay = 0;
-					let baseDelay = snap || !indexChanged ? 0 : 0.05;
+					let baseDelay = snap || !indexChanged || !following ? 0 : 0.05;
+					const positions = [];
 					for (let i = 0; i < count; i++) {
 						const spring = springsRef.current[i];
-						const y = focusY - activeMid + prefixes[i];
-						if (snap || !layoutReady) spring.snap(y);
+						const y = focusY - activeMid + prefixes[i] + userOffsetRef.current;
+						if (snap || !layoutReady || !following) spring.snap(y);
 						else spring.setTarget(y, indexChanged ? delay : 0);
-						const current = spring.update(dt, now);
-						const node = nodes[i];
-						const blur = computeLineBlur(i, currentIndex);
-						node.style.transform = `translate3d(0, ${current}px, 0) scale(${i === currentIndex ? 1 : 0.97})`;
-						node.style.opacity = i === currentIndex ? "1" : "0.22";
-						node.style.filter = blur > 0 ? `blur(${blur}px)` : "none";
+						positions.push(spring.update(dt, now));
 						if (indexChanged && !snap && y + heights[i] >= 0) {
 							delay += baseDelay;
 							if (i >= focusIndex) baseDelay /= 1.05;
 						}
 					}
-					if (layoutReady) lastIndexRef.current = currentIndex;
+					let visualIndex = currentIndex;
+					if (!following) {
+						let visualDist = Infinity;
+						for (let i = 0; i < count; i++) {
+							const dist = Math.abs(positions[i] + heights[i] / 2 - focusY);
+							if (dist < visualDist) {
+								visualDist = dist;
+								visualIndex = i;
+							}
+						}
+					}
+					for (let i = 0; i < count; i++) {
+						const node = nodes[i];
+						const current = positions[i];
+						const active = i === visualIndex;
+						node.style.transform = `translate3d(0, ${current}px, 0) scale(${active ? 1 : 0.97})`;
+						node.style.opacity = active ? "1" : "0.22";
+						const blur = computeLineBlur(i, visualIndex);
+						node.style.filter = blur > 0 ? `blur(${blur}px)` : "none";
+					}
+					if (layoutReady && following) lastIndexRef.current = currentIndex;
 				}
 				raf = requestAnimationFrame(tick);
 			};
@@ -815,12 +1584,63 @@
 		}, [lines, artRef]);
 
 		if (!lines.length) {
+			if (status === "loading") {
+				return react.createElement(
+					"div",
+					{ id: "amnp-empty-lyrics" },
+					react.createElement(
+						"div",
+						{ className: "amnp-loading-dots", "aria-hidden": "true" },
+						react.createElement("i"),
+						react.createElement("i"),
+						react.createElement("i")
+					)
+				);
+			}
 			return react.createElement("div", { id: "amnp-empty-lyrics" }, "暂无歌词");
 		}
 
 		return react.createElement(
 			"div",
-			{ id: "amnp-lyrics-viewport", ref: viewportRef },
+			{
+				id: "amnp-lyrics-viewport",
+				ref: viewportRef,
+				onPointerDown: (event) => {
+					if (event.button !== 0) return;
+					dragRef.current = { active: true, lastY: event.clientY, moved: false };
+				},
+				onPointerMove: (event) => {
+					const drag = dragRef.current;
+					if (!drag.active) return;
+					const dy = event.clientY - drag.lastY;
+					if (!drag.moved && Math.abs(dy) < 8) return;
+					if (!drag.moved) {
+						drag.moved = true;
+						event.currentTarget.setPointerCapture(event.pointerId);
+					}
+					pauseFollow();
+					userOffsetRef.current += dy;
+					drag.lastY = event.clientY;
+				},
+				onPointerUp: (event) => {
+					const drag = dragRef.current;
+					if (drag.moved) {
+						try {
+							event.currentTarget.releasePointerCapture(event.pointerId);
+						} catch {}
+						drag.active = false;
+						return;
+					}
+					drag.active = false;
+					const node = event.target.closest?.(".amnp-line");
+					const index = Number(node?.dataset?.index);
+					const line = Number.isInteger(index) ? lines[index] : null;
+					if (line?.startTime != null) {
+						resumeFollow();
+						Spicetify.Player.seek(line.startTime);
+					}
+				},
+			},
 			react.createElement(
 				"div",
 				{ id: "amnp-lyrics" },
@@ -830,11 +1650,9 @@
 						{
 							key: `${line.startTime}-${index}`,
 							className: `amnp-line${index === activeIndex ? " active" : ""}${line.text ? "" : " empty"}`,
+							"data-index": String(index),
 							ref: (el) => {
 								lineRefs.current[index] = el;
-							},
-							onClick: () => {
-								if (line.startTime != null) Spicetify.Player.seek(line.startTime);
 							},
 						},
 						line.text || " "
@@ -846,8 +1664,10 @@
 
 	const App = () => {
 		const [track, setTrack] = useState(() => {
-			const meta = Spicetify.Player.data?.item?.metadata || {};
+			const item = Spicetify.Player.data?.item;
+			const meta = item?.metadata || {};
 			return {
+				uri: item?.uri || "",
 				title: meta.title || "",
 				artist: meta.artist_name || "",
 				album: meta.album_title || "",
@@ -856,12 +1676,23 @@
 			};
 		});
 		const [lines, setLines] = useState([]);
+		const [lyricSource, setLyricSource] = useState("");
+		const [lyricStatus, setLyricStatus] = useState("loading");
 		const [playing, setPlaying] = useState(Spicetify.Player.isPlaying());
+		const [insightOpen, setInsightOpen] = useState(false);
+		const [insightStatus, setInsightStatus] = useState("idle");
+		const [insightText, setInsightText] = useState("");
+		const [insightError, setInsightError] = useState("");
 		const artRef = useRef(null);
+		const lyricsRequestId = useRef(0);
+		const insightCache = useRef({});
+		const insightRequestId = useRef(0);
 
 		const refreshTrack = () => {
-			const meta = Spicetify.Player.data?.item?.metadata || {};
+			const item = Spicetify.Player.data?.item;
+			const meta = item?.metadata || {};
 			setTrack({
+				uri: item?.uri || "",
 				title: meta.title || "",
 				artist: meta.artist_name || "",
 				album: meta.album_title || "",
@@ -870,10 +1701,56 @@
 			});
 		};
 
+		const runInsight = async (currentTrack, currentLines) => {
+			const uri = currentTrack.uri;
+			if (insightCache.current[insightCacheKey(uri)]) {
+				setInsightText(insightCache.current[insightCacheKey(uri)]);
+				setInsightStatus("ready");
+				setInsightError("");
+				return;
+			}
+			if (!getDeepseekKey()) {
+				setInsightStatus("need-key");
+				return;
+			}
+			const requestId = ++insightRequestId.current;
+			setInsightStatus("loading");
+			setInsightText("");
+			setInsightError("");
+			try {
+				const text = await interpretWithDeepseek(currentTrack, currentLines);
+				if (requestId !== insightRequestId.current) return;
+				insightCache.current[insightCacheKey(uri)] = text;
+				setInsightText(text);
+				setInsightStatus("ready");
+			} catch (error) {
+				if (requestId !== insightRequestId.current) return;
+				if (error?.message === "NO_KEY") {
+					setInsightStatus("need-key");
+					return;
+				}
+				setInsightStatus("error");
+				setInsightError(error?.message || "解读失败，请稍后再试。");
+			}
+		};
+
 		useEffect(() => {
 			const onSong = async () => {
+				const requestId = ++lyricsRequestId.current;
 				refreshTrack();
-				setLines(await loadLyrics());
+				setLines([]);
+				setLyricSource("");
+				setLyricStatus("loading");
+				setInsightOpen(false);
+				setInsightStatus("idle");
+				setInsightText("");
+				setInsightError("");
+				insightRequestId.current += 1;
+				const result = await loadLyrics();
+				if (requestId !== lyricsRequestId.current) return;
+				setLines(result.lines);
+				setLyricSource(result.source);
+				setLyricStatus(result.lines.length ? "ready" : "empty");
 			};
 			const onPlayPause = ({ data }) => setPlaying(!data.isPaused);
 			onSong();
@@ -937,8 +1814,55 @@
 						react.createElement(Controls)
 					)
 				),
-				react.createElement("div", { id: "amnp-right" }, react.createElement(Lyrics, { lines, artRef }))
-			)
+				react.createElement(
+					"div",
+					{ id: "amnp-right" },
+					react.createElement(Lyrics, { lines, artRef, status: lyricStatus })
+				)
+			),
+			react.createElement(
+				"div",
+				{ id: "amnp-corner" },
+				react.createElement(
+					"button",
+					{
+						id: "amnp-insight-btn",
+						className: insightOpen ? "on" : "",
+						title: "AI解读歌词",
+						onClick: (event) => {
+							event.stopPropagation();
+							if (insightOpen) {
+								setInsightOpen(false);
+								return;
+							}
+							setInsightOpen(true);
+							runInsight(track, lines);
+						},
+					},
+					renderIcon("sparkle"),
+					react.createElement("span", null, "AI解读")
+				),
+				react.createElement(LyricSourceMark, { source: lyricSource })
+			),
+			insightOpen
+				? react.createElement(InsightPanel, {
+						track,
+						status: insightStatus,
+						text: insightText,
+						error: insightError,
+						onClose: () => setInsightOpen(false),
+						onSaveKey: (key) => {
+							saveDeepseekKey(key);
+							runInsight(track, lines);
+						},
+						onResetKey: () => {
+							saveDeepseekKey("");
+							delete insightCache.current[insightCacheKey(track.uri)];
+							setInsightText("");
+							setInsightStatus("need-key");
+						},
+				  })
+				: null
 		);
 	};
 
