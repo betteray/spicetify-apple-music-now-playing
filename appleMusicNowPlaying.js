@@ -245,6 +245,18 @@
 	height: 0.9em;
 	padding: 0;
 }
+.amnp-line-text {
+	display: block;
+}
+.amnp-line-trans {
+	display: block;
+	margin-top: 0.16em;
+	font-size: 0.38em;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	line-height: 1.35;
+	color: rgba(255, 255, 255, 0.72);
+}
 #amnp-empty-lyrics {
 	height: 100%;
 	display: flex;
@@ -301,13 +313,15 @@
 	opacity: 0.9;
 }
 #amnp-lyric-source span,
-#amnp-insight-btn span {
+#amnp-insight-btn span,
+#amnp-trans-btn span {
 	font-size: 10px;
 	font-weight: 500;
 	letter-spacing: 0.06em;
 	line-height: 1;
 }
-#amnp-insight-btn {
+#amnp-insight-btn,
+#amnp-trans-btn {
 	background: none;
 	border: 0;
 	padding: 0;
@@ -319,7 +333,9 @@
 	font: inherit;
 }
 #amnp-insight-btn:hover,
-#amnp-insight-btn.on {
+#amnp-insight-btn.on,
+#amnp-trans-btn:hover,
+#amnp-trans-btn.on {
 	color: rgba(255, 255, 255, 0.82);
 }
 #amnp-insight {
@@ -674,6 +690,53 @@
 		return usableLines(parseLRC(lrc));
 	}
 
+	function decodeMaybeLrc(value) {
+		if (!value || typeof value !== "string") return "";
+		if (!value.includes("[") && /^[A-Za-z0-9+/=\s]+$/.test(value) && value.length > 40) {
+			try {
+				return decodeBase64Utf8(value.replace(/\s/g, ""));
+			} catch {}
+		}
+		return value;
+	}
+
+	function linesHaveTranslation(lines) {
+		return (lines || []).some((line) => line.translation);
+	}
+
+	function lyricsNeedChinese(lines) {
+		const text = (lines || []).map((line) => line.text).join("");
+		const han = (text.match(/\p{Script=Han}/gu) || []).length;
+		const latin = (text.match(/[A-Za-z]/g) || []).length;
+		return latin >= 12 && han * 2 < latin;
+	}
+
+	function mergeTranslations(lines, transLines) {
+		if (!lines?.length || !transLines?.length) return lines;
+		const next = lines.map((line) => ({ ...line }));
+		const timed = next[0].startTime != null && transLines[0].startTime != null;
+		if (timed) {
+			for (const line of next) {
+				let best = null;
+				let bestDelta = 450;
+				for (const item of transLines) {
+					const delta = Math.abs((item.startTime || 0) - (line.startTime || 0));
+					if (delta < bestDelta && item.text) {
+						bestDelta = delta;
+						best = item;
+					}
+				}
+				if (best) line.translation = best.text;
+			}
+		} else {
+			const count = Math.min(next.length, transLines.length);
+			for (let i = 0; i < count; i++) {
+				if (transLines[i].text) next[i].translation = transLines[i].text;
+			}
+		}
+		return next;
+	}
+
 	function cleanTitle(title) {
 		return (title || "")
 			.replace(/-\s+(feat|with|prod).*/i, "")
@@ -862,7 +925,7 @@
 		return bestScore >= 5 ? best : null;
 	}
 
-	async function fetchNeteaseLyrics(meta, durationMs) {
+	async function fetchNeteaseLyricPack(meta, durationMs) {
 		const { title, artist, album } = trackQuery(meta);
 		if (!title) return null;
 		const headers = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0" };
@@ -888,13 +951,20 @@
 			try {
 				const body = await Spicetify.CosmosAsync.get(url, null, headers);
 				const lines = lrcToLines(body?.lrc?.lyric);
-				if (lines) return lines;
+				const trans = lrcToLines(body?.tlyric?.lyric);
+				if (lines || trans) return { lines, trans };
 			} catch {}
 		}
 		return null;
 	}
 
-	async function fetchQqLyrics(meta, durationMs) {
+	async function fetchNeteaseLyrics(meta, durationMs) {
+		const pack = await fetchNeteaseLyricPack(meta, durationMs);
+		if (!pack?.lines) return null;
+		return mergeTranslations(pack.lines, pack.trans);
+	}
+
+	async function fetchQqLyricPack(meta, durationMs) {
 		const { title, artist } = trackQuery(meta);
 		if (!title || !artist) return null;
 		const headers = { Referer: "https://y.qq.com", "User-Agent": "Mozilla/5.0" };
@@ -930,13 +1000,16 @@
 			null,
 			headers
 		);
-		let lrc = body?.lyric;
-		if (lrc && !lrc.includes("[") && /^[A-Za-z0-9+/=]+$/.test(lrc.replace(/\s/g, ""))) {
-			try {
-				lrc = decodeBase64Utf8(lrc);
-			} catch {}
-		}
-		return lrcToLines(lrc);
+		const lines = lrcToLines(decodeMaybeLrc(body?.lyric));
+		const trans = lrcToLines(decodeMaybeLrc(body?.trans));
+		if (lines || trans) return { lines, trans };
+		return null;
+	}
+
+	async function fetchQqLyrics(meta, durationMs) {
+		const pack = await fetchQqLyricPack(meta, durationMs);
+		if (!pack?.lines) return null;
+		return mergeTranslations(pack.lines, pack.trans);
 	}
 
 	async function loadLyrics() {
@@ -1005,17 +1078,14 @@ ${lyrics || "（暂无歌词，请只根据歌名、歌手与专辑理解。）"
 	function renderInsight(data) {
 		if (!data) return null;
 		const blocks = [];
+		const addSection = (label, value, key) => {
+			if (!value) return;
+			blocks.push(react.createElement("div", { className: "amnp-insight-kicker", key: `${key}-k` }, label));
+			blocks.push(react.createElement("p", { key }, value));
+		};
 		if (data.hook) blocks.push(react.createElement("p", { className: "amnp-insight-hook", key: "hook" }, data.hook));
-		const sections = [
-			["在讲什么", data.story],
-			["情绪", data.mood],
-			["更深一层", data.deeper],
-		];
-		for (const [label, value] of sections) {
-			if (!value) continue;
-			blocks.push(react.createElement("div", { className: "amnp-insight-kicker", key: `${label}-k` }, label));
-			blocks.push(react.createElement("p", { key: label }, value));
-		}
+		addSection("在讲什么", data.story, "story");
+		addSection("情绪", data.mood, "mood");
 		if (Array.isArray(data.images) && data.images.length) {
 			blocks.push(react.createElement("div", { className: "amnp-insight-kicker", key: "images-k" }, "意象"));
 			data.images.forEach((item, index) => {
@@ -1032,9 +1102,9 @@ ${lyrics || "（暂无歌词，请只根据歌名、歌手与专辑理解。）"
 				);
 			});
 		}
+		addSection("更深一层", data.deeper, "deeper");
 		if (data.caveat) blocks.push(react.createElement("div", { className: "amnp-insight-caveat", key: "caveat" }, data.caveat));
-		if (!blocks.length && data.story) return react.createElement("p", null, data.story);
-		return blocks;
+		return blocks.length ? blocks : null;
 	}
 
 	async function interpretWithDeepseek(track, lines) {
@@ -1089,6 +1159,83 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		throw lastError;
 	}
 
+	async function deepseekChat(messages, maxTokens = 1800) {
+		const key = getDeepseekKey();
+		if (!key) throw new Error("NO_KEY");
+		const body = { model: "deepseek-chat", temperature: 0.2, max_tokens: maxTokens, messages };
+		const headers = { "Content-Type": "application/json", Authorization: `Bearer ${key}` };
+		const urls = ["https://api.deepseek.com/chat/completions", "https://api.deepseek.com/v1/chat/completions"];
+		let lastError = new Error("DeepSeek 没有返回内容");
+		for (const url of urls) {
+			try {
+				const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+				const data = await res.json();
+				const text = extractChatText(data);
+				if (text) return text;
+				if (data?.error?.message) lastError = new Error(data.error.message);
+			} catch (error) {
+				lastError = error;
+			}
+			try {
+				const data = await Spicetify.CosmosAsync.post(url, body, headers);
+				const text = extractChatText(data);
+				if (text) return text;
+				if (data?.error?.message) lastError = new Error(data.error.message);
+			} catch (error) {
+				lastError = error;
+			}
+		}
+		throw lastError;
+	}
+
+	async function translateLinesDeepseek(lines) {
+		const payload = lines.map((line, index) => `${index}:${line.text}`).join("\n");
+		const raw = await deepseekChat(
+			[
+				{
+					role: "system",
+					content: "将歌词译为通顺的简体中文，保留原意和语气，不要解释、不要注音。只输出 JSON 数组，项为 {\"i\":行号,\"t\":\"译文\"}。已经是中文的行把 t 留空字符串。",
+				},
+				{ role: "user", content: payload },
+			],
+			2200
+		);
+		const match = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").match(/\[[\s\S]*\]/);
+		if (!match) return null;
+		const items = JSON.parse(match[0]);
+		if (!Array.isArray(items)) return null;
+		const next = lines.map((line) => ({ ...line }));
+		for (const item of items) {
+			const index = Number(item?.i);
+			const text = (item?.t || "").trim();
+			if (Number.isInteger(index) && next[index] && text) next[index].translation = text;
+		}
+		return linesHaveTranslation(next) ? next : null;
+	}
+
+	async function enrichTranslations(lines, meta, durationMs) {
+		if (!lines?.length || linesHaveTranslation(lines)) return null;
+		try {
+			const pack = await fetchNeteaseLyricPack(meta, durationMs);
+			if (pack?.trans?.length) {
+				const merged = mergeTranslations(lines, pack.trans);
+				if (linesHaveTranslation(merged)) return merged;
+			}
+		} catch {}
+		try {
+			const pack = await fetchQqLyricPack(meta, durationMs);
+			if (pack?.trans?.length) {
+				const merged = mergeTranslations(lines, pack.trans);
+				if (linesHaveTranslation(merged)) return merged;
+			}
+		} catch {}
+		if (!lyricsNeedChinese(lines) || !getDeepseekKey()) return null;
+		try {
+			return await translateLinesDeepseek(lines);
+		} catch {}
+		return null;
+	}
+
 	const LyricSourceMark = ({ source }) => {
 		if (!source) return null;
 		return react.createElement(
@@ -1112,7 +1259,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 
 	const InsightPanel = ({ track, status, text, error, onClose, onSaveKey, onResetKey }) => {
 		const [draftKey, setDraftKey] = useState("");
-					const insight = parseInsight(text);
+		const insight = parseInsight(text);
 		const paragraphs = (text || "").split(/\n{2,}|\n/).map((part) => part.trim()).filter(Boolean);
 		return react.createElement(
 			"div",
@@ -1427,7 +1574,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		);
 	};
 
-	const Lyrics = ({ lines, artRef, status }) => {
+	const Lyrics = ({ lines, artRef, status, showTrans }) => {
 		const [progress, setProgress] = useState(Spicetify.Player.getProgress());
 		const viewportRef = useRef(null);
 		const lineRefs = useRef([]);
@@ -1461,6 +1608,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			return index;
 		}, [lines, progress]);
 		activeIndexRef.current = activeIndex;
+		const lyricsIdentity = useMemo(() => lines.map((line) => `${line.startTime}|${line.text}`).join("\n"), [lines]);
 
 		const pauseFollow = () => {
 			const now = performance.now();
@@ -1488,7 +1636,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			userOffsetRef.current = 0;
 			resumeAtRef.current = 0;
 			frozenIndexRef.current = 0;
-		}, [lines]);
+		}, [lyricsIdentity]);
 
 		useEffect(() => {
 			const viewport = viewportRef.current;
@@ -1655,7 +1803,10 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 								lineRefs.current[index] = el;
 							},
 						},
-						line.text || " "
+						react.createElement("div", { className: "amnp-line-text" }, line.text || " "),
+						showTrans && line.translation
+							? react.createElement("div", { className: "amnp-line-trans" }, line.translation)
+							: null
 					)
 				)
 			)
@@ -1683,6 +1834,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		const [insightStatus, setInsightStatus] = useState("idle");
 		const [insightText, setInsightText] = useState("");
 		const [insightError, setInsightError] = useState("");
+		const [showTrans, setShowTrans] = useState(() => localStorage.getItem("amnp-show-trans") !== "0");
 		const artRef = useRef(null);
 		const lyricsRequestId = useRef(0);
 		const insightCache = useRef({});
@@ -1751,6 +1903,11 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 				setLines(result.lines);
 				setLyricSource(result.source);
 				setLyricStatus(result.lines.length ? "ready" : "empty");
+				const meta = Spicetify.Player.data?.item?.metadata || {};
+				const duration = Spicetify.Platform.PlayerAPI._state.duration || 0;
+				const translated = await enrichTranslations(result.lines, meta, duration);
+				if (requestId !== lyricsRequestId.current || !translated) return;
+				setLines(translated);
 			};
 			const onPlayPause = ({ data }) => setPlaying(!data.isPaused);
 			onSong();
@@ -1817,12 +1974,29 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 				react.createElement(
 					"div",
 					{ id: "amnp-right" },
-					react.createElement(Lyrics, { lines, artRef, status: lyricStatus })
+					react.createElement(Lyrics, { lines, artRef, status: lyricStatus, showTrans })
 				)
 			),
 			react.createElement(
 				"div",
 				{ id: "amnp-corner" },
+				linesHaveTranslation(lines)
+					? react.createElement(
+							"button",
+							{
+								id: "amnp-trans-btn",
+								className: showTrans ? "on" : "",
+								title: showTrans ? "隐藏译文" : "显示译文",
+								onClick: (event) => {
+									event.stopPropagation();
+									const next = !showTrans;
+									setShowTrans(next);
+									localStorage.setItem("amnp-show-trans", next ? "1" : "0");
+								},
+							},
+							react.createElement("span", null, "译文")
+					  )
+					: null,
 				react.createElement(
 					"button",
 					{
