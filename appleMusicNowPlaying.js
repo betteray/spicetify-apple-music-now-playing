@@ -307,7 +307,8 @@
 	color: rgba(255, 255, 255, 0.34);
 }
 #amnp-lyric-source svg,
-#amnp-insight-btn svg {
+#amnp-insight-btn svg,
+#amnp-trans-btn svg {
 	display: block;
 	flex-shrink: 0;
 	opacity: 0.9;
@@ -1389,6 +1390,11 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			viewBox: "0 0 24 24",
 			html: '<path d="M12 2.2 13.35 7.1 18.2 8.4 13.35 9.7 12 14.6 10.65 9.7 5.8 8.4 10.65 7.1Z"/><path d="M18.7 13.4 19.45 16.1 22.1 16.85 19.45 17.6 18.7 20.3 17.95 17.6 15.3 16.85 17.95 16.1Z"/>',
 		},
+		translate: {
+			size: 12,
+			viewBox: "0 0 24 24",
+			html: '<path d="M4.2 4.2h9.2v2H11.3c-.5 1.6-1.4 3.1-2.6 4.3 1 .9 2.1 1.6 3.3 2.1l-.7 1.9c-1.5-.6-2.8-1.5-4-2.6-1.2 1.1-2.5 2-4 2.6l-.7-1.9c1.2-.5 2.3-1.2 3.3-2.1C4.9 9.3 4 7.8 3.5 6.2h2.1c.4 1.1 1 2.1 1.8 3 1-.9 1.8-2 2.3-3.2H4.2v-1.8zm11.2 7.1h6.4L19 18.6h-2.1l-.6-1.7h-3.5l-.6 1.7h-2.1l2.8-7.3h2.5zm.1 3.8h2.4l-1.2-3.3h-.1l-1.1 3.3z"/>',
+		},
 	};
 
 	const renderIcon = (name) => react.createElement(Glyph, ICONS[name]);
@@ -1994,6 +2000,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 									localStorage.setItem("amnp-show-trans", next ? "1" : "0");
 								},
 							},
+							renderIcon("translate"),
 							react.createElement("span", null, "译文")
 					  )
 					: null,
