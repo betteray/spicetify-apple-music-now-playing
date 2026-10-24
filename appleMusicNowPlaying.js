@@ -216,6 +216,10 @@
 	overflow: hidden;
 	mix-blend-mode: plus-lighter;
 	touch-action: none;
+	-webkit-touch-callout: none;
+}
+#amnp-lyrics-viewport.copying .amnp-line {
+	cursor: pointer;
 }
 #amnp-lyrics {
 	position: relative;
@@ -237,6 +241,7 @@
 	transform-origin: left center;
 	will-change: transform, filter, opacity;
 	transition: opacity 0.4s ease, filter 0.4s ease;
+	-webkit-touch-callout: none;
 }
 .amnp-line.empty {
 	opacity: 0 !important;
@@ -244,6 +249,16 @@
 	pointer-events: none;
 	height: 0.9em;
 	padding: 0;
+}
+.amnp-line.picked::before {
+	content: "";
+	position: absolute;
+	left: -0.28em;
+	top: 0.55em;
+	bottom: 0.55em;
+	width: 0.08em;
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.88);
 }
 .amnp-line-text {
 	display: block;
@@ -338,6 +353,63 @@
 #amnp-trans-btn:hover,
 #amnp-trans-btn.on {
 	color: rgba(255, 255, 255, 0.82);
+}
+#amnp-copy-bar {
+	position: absolute;
+	left: 0;
+	right: 8vw;
+	bottom: 58px;
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	mix-blend-mode: plus-lighter;
+}
+#amnp-copy-hint {
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	color: rgba(255, 255, 255, 0.42);
+	margin-right: 4px;
+}
+#amnp-copy-bar button {
+	background: rgba(255, 255, 255, 0.08);
+	border: 0;
+	padding: 7px 12px;
+	border-radius: 999px;
+	color: rgba(255, 255, 255, 0.78);
+	cursor: pointer;
+	font: inherit;
+	font-size: 11px;
+	font-weight: 550;
+	letter-spacing: 0.04em;
+}
+#amnp-copy-bar button.primary {
+	background: rgba(255, 255, 255, 0.18);
+	color: #fff;
+}
+#amnp-copy-bar button:hover {
+	background: rgba(255, 255, 255, 0.16);
+	color: #fff;
+}
+#amnp-toast {
+	position: absolute;
+	left: 50%;
+	bottom: 78px;
+	transform: translateX(-50%);
+	z-index: 9;
+	padding: 10px 18px;
+	border-radius: 999px;
+	background: rgba(16, 16, 16, 0.55);
+	backdrop-filter: blur(22px) saturate(1.1);
+	font-size: 13px;
+	font-weight: 550;
+	letter-spacing: 0.02em;
+	color: rgba(255, 255, 255, 0.9);
+	pointer-events: none;
+}
+#amnp-root.copying.hide-cursor {
+	cursor: default;
 }
 #amnp-insight {
 	position: absolute;
@@ -703,6 +775,40 @@
 
 	function linesHaveTranslation(lines) {
 		return (lines || []).some((line) => line.translation);
+	}
+
+	function formatLyricsForCopy(lines, indices, showTrans) {
+		const source = (indices || []).map((index) => lines[index]).filter(Boolean);
+		const parts = [];
+		for (const line of source) {
+			const text = (line?.text || "").trim();
+			if (!text) continue;
+			if (showTrans && line.translation) parts.push(`${text}\n${line.translation}`);
+			else parts.push(text);
+		}
+		return parts;
+	}
+
+	async function copyToClipboard(text) {
+		try {
+			await navigator.clipboard.writeText(text);
+			return true;
+		} catch {
+			try {
+				const area = document.createElement("textarea");
+				area.value = text;
+				area.setAttribute("readonly", "");
+				area.style.position = "fixed";
+				area.style.left = "-9999px";
+				document.body.appendChild(area);
+				area.select();
+				const ok = document.execCommand("copy");
+				area.remove();
+				return ok;
+			} catch {
+				return false;
+			}
+		}
 	}
 
 	function lyricsNeedChinese(lines) {
@@ -1580,7 +1686,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		);
 	};
 
-	const Lyrics = ({ lines, artRef, status, showTrans }) => {
+	const Lyrics = ({ lines, artRef, status, showTrans, copyMode, picked, onPickLine, onBeginCopy, onExtendCopy }) => {
 		const [progress, setProgress] = useState(Spicetify.Player.getProgress());
 		const viewportRef = useRef(null);
 		const lineRefs = useRef([]);
@@ -1591,6 +1697,44 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		const resumeAtRef = useRef(0);
 		const frozenIndexRef = useRef(0);
 		const dragRef = useRef({ active: false, lastY: 0, moved: false });
+		const longPressRef = useRef({ timer: 0, index: -1, selecting: false });
+		const copyModeRef = useRef(copyMode);
+		const pickedRef = useRef(picked);
+		copyModeRef.current = copyMode;
+		pickedRef.current = picked;
+
+		const clearLongPress = () => {
+			if (longPressRef.current.timer) {
+				clearTimeout(longPressRef.current.timer);
+				longPressRef.current.timer = 0;
+			}
+		};
+
+		const lineIndexAt = (event) => {
+			const el = document.elementFromPoint(event.clientX, event.clientY);
+			const node = el?.closest?.(".amnp-line");
+			if (!node || node.classList.contains("empty")) return -1;
+			const index = Number(node.dataset?.index);
+			return Number.isInteger(index) && lines[index]?.text ? index : -1;
+		};
+
+		const nearestLineIndex = (event) => {
+			const hit = lineIndexAt(event);
+			if (hit >= 0) return hit;
+			let best = -1;
+			let dist = Infinity;
+			for (let i = 0; i < lineRefs.current.length; i++) {
+				const node = lineRefs.current[i];
+				if (!node || !lines[i]?.text) continue;
+				const box = node.getBoundingClientRect();
+				const d = Math.abs(event.clientY - (box.top + box.height / 2));
+				if (d < dist) {
+					dist = d;
+					best = i;
+				}
+			}
+			return best;
+		};
 
 		useEffect(() => {
 			const onProgress = ({ data }) => setProgress(data);
@@ -1630,6 +1774,10 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		};
 
 		useEffect(() => {
+			if (copyMode) pauseFollow();
+		}, [copyMode]);
+
+		useEffect(() => {
 			springsRef.current = lines.map((_, i) => {
 				const prev = lines[i - 1];
 				const interval = prev && lines[i].startTime != null && prev.startTime != null ? lines[i].startTime - prev.startTime : 400;
@@ -1642,6 +1790,8 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			userOffsetRef.current = 0;
 			resumeAtRef.current = 0;
 			frozenIndexRef.current = 0;
+			clearLongPress();
+			longPressRef.current.selecting = false;
 		}, [lyricsIdentity]);
 
 		useEffect(() => {
@@ -1720,14 +1870,23 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 							}
 						}
 					}
+					const copying = copyModeRef.current;
+					const pickedSet = new Set(pickedRef.current);
 					for (let i = 0; i < count; i++) {
 						const node = nodes[i];
 						const current = positions[i];
 						const active = i === visualIndex;
-						node.style.transform = `translate3d(0, ${current}px, 0) scale(${active ? 1 : 0.97})`;
-						node.style.opacity = active ? "1" : "0.22";
-						const blur = computeLineBlur(i, visualIndex);
-						node.style.filter = blur > 0 ? `blur(${blur}px)` : "none";
+						const selected = copying && pickedSet.has(i);
+						node.style.transform = `translate3d(0, ${current}px, 0) scale(${active || selected ? 1 : 0.97})`;
+						if (copying) {
+							node.style.opacity = selected ? "1" : "0.2";
+							node.style.filter = "none";
+						} else {
+							node.style.opacity = active ? "1" : "0.22";
+							const blur = computeLineBlur(i, visualIndex);
+							node.style.filter = blur > 0 ? `blur(${blur}px)` : "none";
+						}
+						node.classList.toggle("picked", selected);
 					}
 					if (layoutReady && following) lastIndexRef.current = currentIndex;
 				}
@@ -1758,16 +1917,53 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			"div",
 			{
 				id: "amnp-lyrics-viewport",
+				className: copyMode ? "copying" : "",
 				ref: viewportRef,
+				onDoubleClick: (event) => {
+					if (copyMode) event.stopPropagation();
+				},
+				onContextMenu: (event) => {
+					const index = lineIndexAt(event);
+					if (index < 0) return;
+					event.preventDefault();
+					event.stopPropagation();
+					clearLongPress();
+					pauseFollow();
+					onBeginCopy?.(index);
+				},
 				onPointerDown: (event) => {
 					if (event.button !== 0) return;
 					dragRef.current = { active: true, lastY: event.clientY, moved: false };
+					clearLongPress();
+					longPressRef.current.selecting = false;
+					const index = lineIndexAt(event);
+					longPressRef.current.index = index;
+					if (index < 0) return;
+					longPressRef.current.timer = setTimeout(() => {
+						longPressRef.current.timer = 0;
+						longPressRef.current.selecting = true;
+						try {
+							event.currentTarget.setPointerCapture(event.pointerId);
+						} catch {}
+						pauseFollow();
+						onBeginCopy?.(index);
+						try {
+							navigator.vibrate?.(12);
+						} catch {}
+					}, 480);
 				},
 				onPointerMove: (event) => {
 					const drag = dragRef.current;
 					if (!drag.active) return;
 					const dy = event.clientY - drag.lastY;
+					if (longPressRef.current.selecting) {
+						const index = nearestLineIndex(event);
+						if (index >= 0) onExtendCopy?.(longPressRef.current.index, index);
+						drag.lastY = event.clientY;
+						return;
+					}
 					if (!drag.moved && Math.abs(dy) < 8) return;
+					clearLongPress();
 					if (!drag.moved) {
 						drag.moved = true;
 						event.currentTarget.setPointerCapture(event.pointerId);
@@ -1777,8 +1973,11 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 					drag.lastY = event.clientY;
 				},
 				onPointerUp: (event) => {
+					clearLongPress();
 					const drag = dragRef.current;
-					if (drag.moved) {
+					const wasSelecting = longPressRef.current.selecting;
+					longPressRef.current.selecting = false;
+					if (drag.moved || wasSelecting) {
 						try {
 							event.currentTarget.releasePointerCapture(event.pointerId);
 						} catch {}
@@ -1789,10 +1988,23 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 					const node = event.target.closest?.(".amnp-line");
 					const index = Number(node?.dataset?.index);
 					const line = Number.isInteger(index) ? lines[index] : null;
-					if (line?.startTime != null) {
+					if (!line?.text) return;
+					if (copyMode) {
+						onPickLine?.(index, event.shiftKey);
+						return;
+					}
+					if (line.startTime != null) {
 						resumeFollow();
 						Spicetify.Player.seek(line.startTime);
 					}
+				},
+				onPointerCancel: (event) => {
+					clearLongPress();
+					longPressRef.current.selecting = false;
+					dragRef.current.active = false;
+					try {
+						event.currentTarget.releasePointerCapture(event.pointerId);
+					} catch {}
 				},
 			},
 			react.createElement(
@@ -1803,7 +2015,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 						"div",
 						{
 							key: `${line.startTime}-${index}`,
-							className: `amnp-line${index === activeIndex ? " active" : ""}${line.text ? "" : " empty"}`,
+							className: `amnp-line${index === activeIndex ? " active" : ""}${line.text ? "" : " empty"}${copyMode && picked.includes(index) ? " picked" : ""}`,
 							"data-index": String(index),
 							ref: (el) => {
 								lineRefs.current[index] = el;
@@ -1841,10 +2053,71 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		const [insightText, setInsightText] = useState("");
 		const [insightError, setInsightError] = useState("");
 		const [showTrans, setShowTrans] = useState(() => localStorage.getItem("amnp-show-trans") !== "0");
+		const [copyMode, setCopyMode] = useState(false);
+		const [picked, setPicked] = useState([]);
+		const [toast, setToast] = useState("");
 		const artRef = useRef(null);
 		const lyricsRequestId = useRef(0);
 		const insightCache = useRef({});
 		const insightRequestId = useRef(0);
+		const lastPickRef = useRef(null);
+		const toastTimer = useRef(0);
+
+		const exitCopyMode = () => {
+			setCopyMode(false);
+			setPicked([]);
+			lastPickRef.current = null;
+		};
+
+		const showToast = (text) => {
+			setToast(text);
+			clearTimeout(toastTimer.current);
+			toastTimer.current = setTimeout(() => setToast(""), 1600);
+		};
+
+		const onBeginCopy = (index) => {
+			setCopyMode(true);
+			setPicked(lines[index]?.text?.trim() ? [index] : []);
+			lastPickRef.current = index;
+		};
+
+		const onExtendCopy = (from, to) => {
+			const start = Math.min(from, to);
+			const end = Math.max(from, to);
+			const next = [];
+			for (let i = start; i <= end; i++) {
+				if (lines[i]?.text?.trim()) next.push(i);
+			}
+			setPicked(next);
+			lastPickRef.current = to;
+		};
+
+		const onPickLine = (index, shift) => {
+			setPicked((current) => {
+				const next = new Set(current);
+				if (shift && lastPickRef.current != null) {
+					const from = Math.min(lastPickRef.current, index);
+					const to = Math.max(lastPickRef.current, index);
+					for (let i = from; i <= to; i++) {
+						if (lines[i]?.text?.trim()) next.add(i);
+					}
+				} else if (next.has(index)) next.delete(index);
+				else next.add(index);
+				lastPickRef.current = index;
+				return [...next].sort((a, b) => a - b);
+			});
+		};
+
+		const copyPickedLyrics = async () => {
+			const parts = formatLyricsForCopy(lines, picked, showTrans);
+			if (!picked.length || !parts.length) {
+				showToast("请先选择歌词");
+				return;
+			}
+			const ok = await copyToClipboard(parts.join("\n"));
+			showToast(ok ? `已复制 ${parts.length} 行` : "复制失败");
+			if (ok) exitCopyMode();
+		};
 
 		const refreshTrack = () => {
 			const item = Spicetify.Player.data?.item;
@@ -1903,6 +2176,9 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 				setInsightStatus("idle");
 				setInsightText("");
 				setInsightError("");
+				setCopyMode(false);
+				setPicked([]);
+				lastPickRef.current = null;
 				insightRequestId.current += 1;
 				const result = await loadLyrics();
 				if (requestId !== lyricsRequestId.current) return;
@@ -1925,12 +2201,41 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 			};
 		}, []);
 
+		useEffect(() => {
+			const onKey = (event) => {
+				if (event.key === "Escape") {
+					event.preventDefault();
+					event.stopPropagation();
+					event.stopImmediatePropagation();
+					if (insightOpen) {
+						setInsightOpen(false);
+						return;
+					}
+					if (copyMode) {
+						exitCopyMode();
+						return;
+					}
+					deactivate();
+					return;
+				}
+				if (!copyMode) return;
+				if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "c") {
+					event.preventDefault();
+					event.stopPropagation();
+					copyPickedLyrics();
+				}
+			};
+			document.addEventListener("keydown", onKey, true);
+			return () => document.removeEventListener("keydown", onKey, true);
+		}, [insightOpen, copyMode, picked, lines, showTrans]);
+
 		const cover = track.cover ? `url("${track.cover}")` : "none";
 
 		return react.createElement(
 			"div",
 			{
 				id: "amnp-root",
+				className: copyMode ? "copying" : "",
 				onDoubleClick: deactivate,
 			},
 			react.createElement(FluidBackground, { src: track.cover }),
@@ -1980,7 +2285,32 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 				react.createElement(
 					"div",
 					{ id: "amnp-right" },
-					react.createElement(Lyrics, { lines, artRef, status: lyricStatus, showTrans })
+					react.createElement(Lyrics, {
+						lines,
+						artRef,
+						status: lyricStatus,
+						showTrans,
+						copyMode,
+						picked,
+						onPickLine,
+						onBeginCopy,
+						onExtendCopy,
+					}),
+					copyMode
+						? react.createElement(
+								"div",
+								{ id: "amnp-copy-bar" },
+								react.createElement("span", { id: "amnp-copy-hint" }, "点选增减，拖动连选"),
+								picked.length
+									? react.createElement(
+											"button",
+											{ type: "button", className: "primary", onClick: copyPickedLyrics },
+											`复制 ${picked.length} 行`
+									  )
+									: null,
+								react.createElement("button", { type: "button", onClick: exitCopyMode }, "取消")
+						  )
+						: null
 				)
 			),
 			react.createElement(
@@ -2025,6 +2355,7 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 				),
 				react.createElement(LyricSourceMark, { source: lyricSource })
 			),
+			toast ? react.createElement("div", { id: "amnp-toast" }, toast) : null,
 			insightOpen
 				? react.createElement(InsightPanel, {
 						track,
@@ -2055,7 +2386,6 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 	mount.id = "amnp-mount";
 
 	const bodyClasses = ["video", "video-full-screen", "video-full-window", "video-full-screen--hide-ui"];
-	const mousetrap = new Spicetify.Mousetrap();
 	let cursorTimer;
 
 	function hideCursorSoon() {
@@ -2074,13 +2404,11 @@ images 选 3 到 5 个信息量最大的意象，不要逐句翻译。禁止鸡�
 		try {
 			await document.documentElement.requestFullscreen();
 		} catch {}
-		mousetrap.bind("esc", deactivate);
 		document.addEventListener("mousemove", hideCursorSoon);
 		hideCursorSoon();
 	}
 
 	async function deactivate() {
-		mousetrap.unbind("esc");
 		document.removeEventListener("mousemove", hideCursorSoon);
 		clearTimeout(cursorTimer);
 		if (document.fullscreenElement || document.webkitIsFullScreen) {
